@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title> Yoru </title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #0b0f19; }
+        .input_video { display: none; }
+        #bg-image-source, #flash-image-source { display: none; }
+        
+        #output_canvas { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            object-fit: cover; transform: scaleX(-1);
+        }
+    </style>
+</head>
+<body>
+    <img id="bg-image-source" src="background.jpg" alt="background">
+    <img id="flash-image-source" src="choang.jpg" alt="flash overlay" crossorigin="anonymous"> 
+    
+    <video class="input_video"></video>
+    <canvas id="output_canvas"></canvas>
+
+    <script>
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const canvasElement = document.getElementById('output_canvas');
+        const ctx = canvasElement.getContext('2d');
+        const bgImageElement = document.getElementById('bg-image-source');
+        const flashImageElement = document.getElementById('flash-image-source');
+        
+        const bgCanvas = document.createElement('canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        
+        const stealthCanvas = document.createElement('canvas');
+        const stealthCtx = stealthCanvas.getContext('2d');
+
+        let isBgCaptured = false;
+        let triggerCaptureFrame = false;
+        let isExposureLocked = false;
+
+        function resizeCanvas() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            canvasElement.width = w;
+            canvasElement.height = h;
+            bgCanvas.width = w;
+            bgCanvas.height = h;
+            stealthCanvas.width = w;
+            stealthCanvas.height = h;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        async function lockCameraExposure() {
+            if (!videoElement.srcObject) return;
+            
+            const track = videoElement.srcObject.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            const settings = track.getSettings();
+
+            // Kiểm tra hỗ trợ chỉnh exposure
+            if (!capabilities.exposureMode) {
+                console.warn("Camera này không hỗ trợ khóa sáng (Exposure Mode).");
+                return;
+            }
+
+            try {
+                const constraints = {
+                    advanced: [{
+                        exposureMode: 'manual', 
+                        whiteBalanceMode: 'manual',
+                        exposureTime: settings.exposureTime,
+                        colorTemperature: settings.colorTemperature,
+                        iso: settings.iso
+                    }]
+                };
+
+                await track.applyConstraints(constraints);
+                isExposureLocked = true;
+                console.log("Đã khóa ánh sáng (Exposure Locked) tại:", settings.exposureTime);
+            } catch (err) {
+                console.error("Lỗi khi khóa sáng:", err);
+            }
+        }
+
+        window.addEventListener('keydown', async (e) => {
+            if (e.code === 'Space') {
+                triggerCaptureFrame = true;
+                if (!isExposureLocked) {
+                    await lockCameraExposure();
+                }
+            }
+        });
+
+        const CONFIG = {
+            blueHue: 200, blueSat: '100%', blueLight: '60%',
+            flashTime: 250,
+            rectSidePadding: 140,
+            revealSpeed: 0.02, 
+            flashOrbRadius: 120, 
+            chargeParticleSize: 8,
+            silenceDuration: 0,
+            edgeSoftness: 100 
+        };
+        
+        const getBlue = (alpha = 1.0) => `hsla(${CONFIG.blueHue}, ${CONFIG.blueSat}, ${CONFIG.blueLight}, ${alpha})`;
+        const getBrightBlue = (alpha = 1.0) => `hsla(${CONFIG.blueHue}, ${CONFIG.blueSat}, 85%, ${alpha})`;
+
+        let particles = []; 
+        class Particle {
+            constructor(x, y, type) {
+                this.x = x; this.y = y;
+                this.type = type; 
+                this.life = 1.0;
+                if (type === 'charge') { 
+                    this.size = Math.random() * CONFIG.chargeParticleSize + 3; 
+                    this.vx = (Math.random() - 0.5) * 6; 
+                    this.vy = (Math.random() - 0.5) * 6;
+                    this.decay = 0.05;
+                } else if (type === 'trail') { 
+                    this.size = Math.random() * 8 + 3;
+                    this.vx = (Math.random() - 0.5) * 2;
+                    this.vy = Math.random() * 5 + 2; 
+                    this.decay = 0.1;
+                }
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                ctx.fillStyle = getBlue(this.life);
+                ctx.fill(); 
+            }
+        }
+
+        let handCenterX = 0, handCenterY = 0; 
+        let isLeftFist = false, isRightFist = false; 
+        let wasStealthing = false; 
+        let silenceEndTime = 0;    
+        let isSilenced = false;    
+        let fireballState = 0; let fireballPos = {x: 0, y: 0}; let fireballLaunchTime = 0; let flashIntensity = 0; 
+        let stealthAlpha = 0; 
+
+        function checkFist(landmarks) { 
+            const wristY = landmarks[0].y;
+            const mcpY = landmarks[9].y;
+            const tipY = landmarks[12].y;
+            const isHandUpright = wristY > mcpY; 
+            
+            if (isHandUpright) {
+                return (tipY > mcpY && tipY < wristY);
+            } else {
+                return tipY > mcpY;
+            }
+        }
+
+        function getFullHeightStrip(landmarks, w, h) {
+            let minX = w, maxX = 0;
+            for (const lm of landmarks) {
+                const x = lm.x * w;
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+            }
+            minX -= CONFIG.rectSidePadding;
+            maxX += CONFIG.rectSidePadding;
+            return { x: minX, y: 0, width: maxX - minX, height: h };
+        }
+
+        function drawEnergyOrb(x, y, radius) {
+            const gradient = ctx.createRadialGradient(x, y, radius * 0.2, x, y, radius);
+            gradient.addColorStop(0, getBrightBlue(1.0));
+            gradient.addColorStop(0.6, getBlue(0.8));
+            gradient.addColorStop(1, getBlue(0.0));
+            ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.shadowBlur = 40; ctx.shadowColor = getBlue(1.0); 
+            ctx.fill(); ctx.shadowBlur = 0;
+        }
+        // choáng
+        function onResults(results) {
+            const w = canvasElement.width;
+            const h = canvasElement.height;
+            const now = Date.now();
+            // tàng hình
+            if (triggerCaptureFrame) {
+                bgCtx.drawImage(results.image, 0, 0, w, h);
+                isBgCaptured = true;
+                triggerCaptureFrame = false;
+            }
+
+            if (results.rightHandLandmarks) {
+                handCenterX = results.rightHandLandmarks[9].x * w;
+                handCenterY = results.rightHandLandmarks[9].y * h;
+                isRightFist = checkFist(results.rightHandLandmarks);
+            } else { isRightFist = false; }
+
+            if (results.leftHandLandmarks) {
+                isLeftFist = checkFist(results.leftHandLandmarks);
+            } else { isLeftFist = false; }
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.drawImage(results.image, 0, 0, w, h);
+
+            if (wasStealthing && !isLeftFist) {
+                silenceEndTime = now + CONFIG.silenceDuration;
+            }
+            wasStealthing = isLeftFist;
+            isSilenced = (now < silenceEndTime);
+
+            if (isLeftFist) stealthAlpha = 1.0; else stealthAlpha -= CONFIG.revealSpeed; 
+            if (stealthAlpha < 0) stealthAlpha = 0;
+
+            if (!isSilenced && stealthAlpha > 0 && results.poseLandmarks) {
+                const box = getFullHeightStrip(results.poseLandmarks, w, h);
+                
+                stealthCtx.clearRect(0, 0, w, h);
+
+                stealthCtx.save();
+                stealthCtx.beginPath();
+                stealthCtx.rect(box.x, 0, box.width, h);
+                stealthCtx.clip();
+                
+                if (isBgCaptured) {
+                    stealthCtx.drawImage(bgCanvas, 0, 0, w, h);
+                } else {
+                    stealthCtx.save(); 
+                    stealthCtx.translate(w, 0); stealthCtx.scale(-1, 1); 
+                    stealthCtx.drawImage(bgImageElement, 0, 0, w, h); 
+                    stealthCtx.restore();
+                }
+                stealthCtx.restore();
+
+                stealthCtx.globalCompositeOperation = 'destination-in';
+                const fadeSize = Math.min(CONFIG.edgeSoftness, box.width / 2); 
+                const gradient = stealthCtx.createLinearGradient(box.x, 0, box.x + box.width, 0);
+                gradient.addColorStop(0, "rgba(0,0,0,0)");           
+                gradient.addColorStop(fadeSize / box.width, "rgba(0,0,0,1)");     
+                gradient.addColorStop(1 - (fadeSize / box.width), "rgba(0,0,0,1)"); 
+                gradient.addColorStop(1, "rgba(0,0,0,0)");           
+                stealthCtx.fillStyle = gradient;
+                stealthCtx.fillRect(box.x, 0, box.width, h);
+                stealthCtx.globalCompositeOperation = 'source-over';
+
+                ctx.save();
+                ctx.globalAlpha = stealthAlpha; 
+                ctx.drawImage(stealthCanvas, 0, 0);
+                ctx.restore();
+            }
+
+            if (!isLeftFist && !isSilenced) {
+                if (isRightFist) {
+                    fireballState = 1; fireballPos = {x: handCenterX, y: handCenterY};
+                    for (let i = 0; i < 15; i++) {
+                        const offset = CONFIG.flashOrbRadius * 2.0; 
+                        const px = handCenterX + (Math.random() - 0.5) * offset;
+                        const py = handCenterY + (Math.random() - 0.5) * offset;
+                        particles.push(new Particle(px, py, 'charge'));
+                    }
+                }
+                else if (fireballState === 1 && !isRightFist) {
+                    fireballState = 2; fireballLaunchTime = Date.now();
+                }
+            } else { 
+                fireballState = 0; 
+            }
+
+            if (fireballState === 2) {
+                const elapsed = Date.now() - fireballLaunchTime;
+                fireballPos.y -= 35; 
+                for(let i=0; i<10; i++) {
+                    const px = fireballPos.x + (Math.random()-0.5)*50;
+                    const py = fireballPos.y + (Math.random()-0.5)*50;
+                    particles.push(new Particle(px, py, 'trail'));
+                }
+                if (elapsed > CONFIG.flashTime) {
+                    flashIntensity = 2.0; fireballState = 0; particles = [];
+                }
+            }
+
+            ctx.globalCompositeOperation = 'screen'; 
+            if (fireballState === 1) drawEnergyOrb(handCenterX, handCenterY, CONFIG.flashOrbRadius);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i]; p.update(); p.draw();
+                if (fireballState === 1 && p.type === 'charge') {
+                    p.x += (handCenterX - p.x) * 0.25; p.y += (handCenterY - p.y) * 0.25;
+                }
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+            ctx.globalCompositeOperation = 'source-over';
+
+            if (flashIntensity > 0) {
+                const alpha = Math.min(flashIntensity, 1.0);
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                if (flashImageElement.complete && flashImageElement.naturalHeight !== 0) {
+                    ctx.drawImage(flashImageElement, 0, 0, w, h);
+                } else {
+                    ctx.fillStyle = 'rgba(80, 110, 180, 1)';
+                    ctx.fillRect(0, 0, w, h);
+                }
+                ctx.restore();
+                flashIntensity -= 0.04; 
+            }
+        }
+        //API 
+        const holistic = new Holistic({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`;
+        }});
+        holistic.setOptions({
+            modelComplexity: 1, 
+            smoothLandmarks: true,
+            enableSegmentation: false,
+            minDetectionConfidence: 0.7,  
+            minTrackingConfidence: 0.7    
+        });
+        holistic.onResults(onResults);
+        
+        const webcam = new Camera(videoElement, {
+            onFrame: async () => { await holistic.send({image: videoElement}); },
+            width: 1280,
+            height: 720
+        });
+        webcam.start();
+    </script>
+</body>
+</html>
