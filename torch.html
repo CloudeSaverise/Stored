@@ -371,6 +371,17 @@
                 checkbox.addEventListener('change', setBody);
                 setBody();
             })();
+
+            (function () {
+                const checkbox = document.querySelector('.container input');
+                if (!checkbox) return;
+                const setBody = () => {
+                document.body.classList.toggle('dark', checkbox.checked);
+                window.parent.postMessage({ darkMode: checkbox.checked }, '*');
+                };
+                checkbox.addEventListener('change', setBody);
+                setBody();
+            })();
         </script>
     </body>
 </html>
