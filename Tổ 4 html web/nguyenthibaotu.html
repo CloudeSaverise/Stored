@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8">
+  <title>Giới thiệu bản thân</title>
+  <style>
+ body { text-indent:15px; font-family:serif;}
+ .video-background video {
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: -1;
+	object-fit: cover;
+	transform: translate(-50%, -50%);}
+ h1 {font-size:2.2em; color:white;}
+ p { color:white; line-height:1.2; margin:4px0; font-size:1.4em; }
+ .label { text-decoration:underline; font-weight:bold; }
+ .name {font-size:2.2em; font-weight:bold; margin:18px0;text-align:center;}
+ .center { text-align:center; }
+  </style>
+ </head>
+ <body>
+ <div class="video-background">
+    <video autoplay loop muted playsinline>
+        <source src="https://baotu-spec.github.io/tranbonho/videobg.mp4" type="video/mp4">
+        <source src="https://baotu-spec.github.io/tranbonho/videobg.webm" type="video/webm">
+	</video>
+ </div>
+ <h1><b><em><u>Giới thiệu bản thân</u></em></b></h1>
+ <div class="center">
+  <img src="https://lh3.googleusercontent.com/d/1Y3L2nXymbL4c24MlOLy2BcbbueEOGV4m" width="300" height="380" alt="Ảnh cá nhân">
+ </div>
+<p class="name"> Nguyễn Thị Bảo Tú</p>
+<p><span class="label">Học sinh lớp:</span> 12A2 – THPT Nguyễn Trân</p>
+<p><span class="label">Sở thích:</span> nghe nhạc, nhảy múa, đọc truyện, nấu ăn</p>
+<p><span class="label">Bài hát yêu thích:</span> <em>Không thời gian</em></p>
+
+ <div class="center">
+  <audio controls autoplay loop muted>
+  <source src="https://baotu-spec.github.io/tranbonho/khongthoigian.mp3" type="audio/mpeg"></audio>
+ </div>
+ <p><span class="label">Trailer bộ phim yêu thích:</span> <i>Khi anh chạy về phía em</i></p>
+ <div class="center">
+   <video width="500" height="300" controls>
+    <source src="https://baotu-spec.github.io/tranbonho/review.mp4" type="video/mp4"></video>
+ </div>
+
+</body>
+</html>

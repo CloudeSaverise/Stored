@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> Huỳnh Trần Khánh Duy </title>
+        <style>
+            body { 
+                margin: 0 25% 0 25%;
+                text-align: center;
+                font-family: "Poppins", sans-serif;
+            }
+            u { font-weight: bold }
+
+            .header {
+                border-radius: 12px;
+                background-color: peachpuff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                margin-top: 18px;
+                margin-bottom: 24px;
+                padding: 18px 20px;
+            }
+            .header img {
+                overflow: hidden;
+                position: relative;
+                border-radius: 10px;
+                display: block;
+                margin: 0;
+            }
+            .name-block {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                text-align: center;
+            }
+            .floatbox {
+                display: inline-block;
+                background-color: #DEB887;
+                color: #333;
+                margin: 0;
+                padding: 6px 14px;
+                border-radius: 8px;
+                opacity: 0.9;
+            }
+            .paper {
+                max-width: 600px;
+                margin: 0 auto 24px;
+                padding: 18px;
+                background: wheat;
+                border-radius: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                text-align: left;
+                line-height: 1.6;
+            }
+            .torch-iframe {
+                width: 100%;
+                height: 300px;  
+                border: 2px solid #DEB887;
+                border-radius: 15px;
+                background: white;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            }
+            .side-content {
+                position: fixed; 
+                right: 20px;  
+                top: 50%;   
+                transform: translateY(-50%);
+                width: 180px;  
+                z-index: 1000;
+            }
+
+            h4 {
+                opacity: 0.8;
+            }
+            body.dark-mode {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
+            body.dark-mode .paper {
+                background: #2c2c2c;
+                color: #eee;
+            }
+            a {
+                color: blue;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <a href="https://facebook.com/KhanhDyDepTrai">
+                <img src="https://drive.google.com/thumbnail?id=1Fw6FaLXMmYenOVrd8qPwH0ccFZ8R1aD0&sz=s500" width="200" height="200" alt="Huynh Tran Khanh Duy">
+            </a>
+            <div class="name-block">
+                <h2 class="floatbox"> Huỳnh Trần Khánh Duy </h2>
+                <h2 class="floatbox" style="text-align: center;"> 12A2 </h2>
+                <h4 style="text-align: center; color:#2c2c2c"> " Tình yêu đến, tình yêu đi, ai biết <br>
+                    Trong gặp gỡ đã có mầm ly biệt. " 
+                </h4>
+            </div>
+        </div>
+        <div class="paper">
+            <p>
+                <u><i>Mô Tả:</i></u> <br>
+                Một học sinh bình thường đến mức đặc biệt thuộc lớp 12a2 năm học 2025-2026
+                <u>Thành Tựu:</u><br>
+                Cựu Thiếu Nhi từng đạt hơn 17 phiếu bé ngoan trong 1 học kì <br>
+                <a href="https://cloudesaverise.github.io/Stored/tuyentapthohaycuady.html"> 
+                Nhà Thơ
+                </a> <br>
+                <u>Thành Tựu Nổi Bật:</u> <br>
+            </p>
+            <iframe src="https://cloudesaverise.github.io/KhanhTran/" width="600" height="400"></iframe>
+        </div>
+        <div class="side-content">
+        <iframe class="torch-iframe" src="https://cloudesaverise.github.io/Stored/torch.html" width="600" height="400"></iframe>
+        </div>
+        <script>
+            window.addEventListener('message', function(event) {
+                if (event.data && typeof event.data.darkMode !== 'undefined') {
+                    if (event.data.darkMode) {
+                        document.body.classList.add('dark-mode');
+                        }  
+                    else {
+                        document.body.classList.remove('dark-mode');
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
