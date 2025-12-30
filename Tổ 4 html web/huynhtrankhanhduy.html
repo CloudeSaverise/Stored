@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <title> Huỳnh Trần Khánh Duy </title>
         <style>
+            :root { --paper-bg: #0E4274; --paper-text-color: #FAEBEF; }
             body { 
                 margin: 0 25% 0 25%;
                 text-align: center;
@@ -13,7 +14,7 @@
 
             .header {
                 border-radius: 12px;
-                background-color: peachpuff;
+                background: var(--paper-bg);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -38,8 +39,8 @@
             }
             .floatbox {
                 display: inline-block;
-                background-color: #DEB887;
-                color: #333;
+                background-color: rgba(0, 31, 63, 0.432);
+                color: #FAEBEF;
                 margin: 0;
                 padding: 6px 14px;
                 border-radius: 8px;
@@ -49,12 +50,14 @@
                 max-width: 600px;
                 margin: 0 auto 24px;
                 padding: 18px;
-                background: wheat;
+                background: var(--paper-bg);
                 border-radius: 8px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.08);
                 text-align: left;
                 line-height: 1.6;
             }
+            .paper p { color: var(--paper-text-color); }
+            .name-block h4 { color: var(--paper-text-color); }
             .torch-iframe {
                 width: 100%;
                 height: 300px;  
@@ -78,10 +81,14 @@
             body.dark-mode {
                 background-color: #1a1a1a;
                 color: #ffffff;
+                --paper-bg: #2c2c2c;
+                --paper-text-color: #eee;
+            }
+            body.dark-mode .floatbox {
+                background-color: rgba(23, 23, 24, 0.205);
             }
             body.dark-mode .paper {
-                background: #2c2c2c;
-                color: #eee;
+                background: var(--paper-bg);
             }
             a {
                 color: blue;
@@ -96,7 +103,7 @@
             <div class="name-block">
                 <h2 class="floatbox"> Huỳnh Trần Khánh Duy </h2>
                 <h2 class="floatbox" style="text-align: center;"> 12A2 </h2>
-                <h4 style="text-align: center; color:#2c2c2c"> " Tình yêu đến, tình yêu đi, ai biết <br>
+                <h4 style="text-align: center;"> " Tình yêu đến, tình yêu đi, ai biết <br>
                     Trong gặp gỡ đã có mầm ly biệt. " 
                 </h4>
             </div>
