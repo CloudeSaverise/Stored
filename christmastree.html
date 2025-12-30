@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giáng Sinh</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: -1;
+        }
+
+        .star {
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 35px solid gold;
+            position: relative;
+            margin-bottom: -10px;
+            z-index: 10;
+            filter: drop-shadow(0 0 10px gold);
+            animation: twinkle 1s infinite alternate;
+        }
+        .star:after {
+            content: '';
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 35px solid gold;
+            position: absolute; top: 12px; left: -20px;
+        }
+
+        .tree-layer {
+            width: 0; height: 0;
+            border-left: transparent solid;
+            border-right: transparent solid;
+            border-bottom: #2d5a27 solid;
+            position: relative;
+        }
+        .layer1 { border-left-width: 50px; border-right-width: 50px; border-bottom-width: 60px; margin-top: -5px; }
+        .layer2 { border-left-width: 80px; border-right-width: 80px; border-bottom-width: 90px; margin-top: -40px; }
+        .layer3 { border-left-width: 110px; border-right-width: 110px; border-bottom-width: 120px; margin-top: -60px; }
+
+        .trunk { width: 40px; height: 60px; background: #5e3a24; border-radius: 0 0 5px 5px; }
+
+        .light { position: absolute; width: 8px; height: 8px; border-radius: 50%; z-index: 5; }
+        .red { background: #ff4d4d; box-shadow: 0 0 8px #ff4d4d; animation: flash 0.8s infinite; }
+        .blue { background: #4d94ff; box-shadow: 0 0 8px #4d94ff; animation: flash 1.2s infinite 0.2s; }
+        .yellow { background: #ffff4d; box-shadow: 0 0 8px #ffff4d; animation: flash 1s infinite 0.4s; }
+
+        .snow {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes twinkle { from { transform: scale(1); } to { transform: scale(1.2); } }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes fall {
+            to { transform: translateY(110vh); }
+        }
+    </style>
+</head>
+<body onclick="createSnowBurst(event)">
+
+    <div class="container">
+        <div class="star"></div>
+        <div class="tree-layer layer1">
+            <div class="light red" style="top: 30px; left: -10px;"></div>
+        </div>
+        <div class="tree-layer layer2">
+            <div class="light blue" style="top: 40px; left: -30px;"></div>
+            <div class="light yellow" style="top: 30px; left: 20px;"></div>
+        </div>
+        <div class="tree-layer layer3">
+            <div class="light blue" style="top: 80px; left: -15px;"></div>
+            <div class="light red" style="top: 60px; left: 45px;"></div>
+        </div>
+        <div class="trunk"></div>
+    </div>
+
+    <script>
+        function createSnowFlake() {
+            const snow = document.createElement('div');
+            snow.className = 'snow';
+            
+            const size = Math.random() * 5 + 2 + 'px';
+            snow.style.width = size;
+            snow.style.height = size;
+            
+            snow.style.left = Math.random() * 100 + 'vw';
+            snow.style.top = '-10px';
+            
+            const duration = Math.random() * 3 + 4 + 's';
+            snow.style.animationDuration = duration;
+            snow.style.opacity = Math.random();
+
+            document.body.appendChild(snow);
+
+            setTimeout(() => {
+                snow.remove();
+            }, parseFloat(duration) * 1000);
+        }
+
+        setInterval(createSnowFlake, 200);
+
+
+        function createSnowBurst(e) {
+            for (let i = 0; i < 15; i++) {
+                const snow = document.createElement('div');
+                snow.className = 'snow';
+                const size = Math.random() * 6 + 3 + 'px';
+                snow.style.width = size;
+                snow.style.height = size;
+                snow.style.left = e.clientX + (Math.random() * 100 - 50) + 'px';
+                snow.style.top = e.clientY + (Math.random() * 100 - 50) + 'px';
+                const duration = Math.random() * 2 + 2 + 's';
+                snow.style.animationDuration = duration;
+                snow.style.background = '#e6fbff';
+
+                document.body.appendChild(snow);
+
+                setTimeout(() => {
+                    snow.remove();
+                }, parseFloat(duration) * 1000);
+            }
+        }
+    </script>
+</body>
+</html>
