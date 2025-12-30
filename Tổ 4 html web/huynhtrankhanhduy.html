@@ -74,6 +74,14 @@
                 width: 180px;  
                 z-index: 1000;
             }
+            .left-content {
+                position: fixed; 
+                left: 20px;  
+                top: 50%;   
+                transform: translateY(-50%);
+                width: 180px;  
+                z-index: 1000;
+            }
 
             h4 {
                 opacity: 0.8;
@@ -91,7 +99,40 @@
                 background: var(--paper-bg);
             }
             a {
-                color: blue;
+                color: rgba(37, 170, 223, 0.692);
+            }
+            .modal {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.6);
+                justify-content: center;
+                align-items: center;
+                z-index: 2000;
+            }
+            .modal-content {
+                background: #fff;
+                width: 85%;
+                max-width: 900px;
+                height: 80%;
+                border-radius: 10px;
+                position: relative;
+                overflow: hidden;
+            }
+            .close {
+                position: absolute;
+                top: 10px;
+                right: 15px;
+                cursor: pointer;
+                color: red;
+                font-size: 22px;
+                font-weight: bold;
+                z-index: 10;
+            }
+            #infoFrame {
+                width: 100%;
+                height: 100%;
+                border: none;
             }
         </style>
     </head>
@@ -110,20 +151,39 @@
         </div>
         <div class="paper">
             <p>
-                <u><i>Mô Tả:</i></u> <br>
-                Một học sinh bình thường đến mức đặc biệt thuộc lớp 12a2 năm học 2025-2026
+                <u><i>Mô tả:</i></u> <br>
+                Một học sinh bình thường đến mức đặc biệt thuộc lớp 12a2 năm học 2025-2026 <br>
+                Giỏi copy paste và hay giúp đỡ bạn bè nếu trong tầm khả năng <br>
                 <u>Thành Tựu:</u><br>
                 Cựu Thiếu Nhi từng đạt hơn 17 phiếu bé ngoan trong 1 học kì <br>
-                <a href="https://cloudesaverise.github.io/Stored/tuyentapthohaycuady.html"> 
-                Nhà Thơ
+                <a href="javascript:void(0)" onclick="openInfo('https://cloudesaverise.github.io/Stored/tuyentapthohaycuady.html')"> 
+                    Nhà Thơ
                 </a> <br>
                 <u>Thành Tựu Nổi Bật:</u> <br>
             </p>
             <iframe src="https://cloudesaverise.github.io/KhanhTran/" width="600" height="400"></iframe>
+            <p><u>Video yêu thích:</u></p>
+            <iframe src="https://drive.google.com/file/d/1frW8CmtVtDOt2WrsCHgwHs1fyv9-t0X_/preview" height="420" width="600" allow="autoplay"></iframe> <br>
+            <p>
+                <u>Liên Hệ:</u> <br>
+                Github: <a href="https://github.com/CloudeSaverise"> CloudeSaverise </a><br>
+                Facebook: <a href="https://facebook.com/KhanhDyDepTrai"> Huỳnh Duy </a><br>
+                Email: KhanhDyDepTrai@gmail.com <br>
+            </p>
         </div>
         <div class="side-content">
         <iframe class="torch-iframe" src="https://cloudesaverise.github.io/Stored/torch.html" width="600" height="400"></iframe>
         </div>
+        <div class="left-content">
+        <iframe class="torch-iframe" src="https://cloudesaverise.github.io/Stored/christmastree.html"></iframe>
+        </div>
+        <div class="modal" id="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">✖</span>
+                <iframe id="infoFrame"></iframe>
+            </div>
+        </div>
+
         <script>
             window.addEventListener('message', function(event) {
                 if (event.data && typeof event.data.darkMode !== 'undefined') {
@@ -135,6 +195,27 @@
                     }
                 }
             });
+
+            const modal = document.getElementById("modal");
+            const infoFrame = document.getElementById("infoFrame");
+
+            function openInfo(link) {
+                modal.style.display = "flex";
+                infoFrame.src = link;
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeModal() {
+                modal.style.display = "none";
+                infoFrame.src = "";
+                document.body.style.overflow = "auto";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            }
         </script>
     </body>
 </html>
